@@ -71,13 +71,21 @@ class Tilemap:
                 (tile["pos"][0] - offset[0], tile["pos"][1] - offset[1]),
             )
 
-        for loc in self.tilemap:
-            tile = self.tilemap[loc]
+        x_range_start = offset[0] // self.tile_size
+        x_range_end = (offset[0] + surf.get_width()) // self.tile_size + 1
+        y_range_start = offset[1] // self.tile_size
+        y_range_end = (offset[1] + surf.get_height()) // self.tile_size + 1
 
-            surf.blit(
-                self.game.assets[tile["type"]][tile["variant"]],
-                (
-                    tile["pos"][0] * self.tile_size - offset[0],
-                    tile["pos"][1] * self.tile_size - offset[1],
-                ),
-            )
+        for x in range(x_range_start, x_range_end):
+            for y in range(y_range_start, y_range_end):
+                loc = str(x) + ";" + str(y)
+                if loc in self.tilemap:
+                    tile = self.tilemap[loc]
+
+                    surf.blit(
+                        self.game.assets[tile["type"]][tile["variant"]],
+                        (
+                            tile["pos"][0] * self.tile_size - offset[0],
+                            tile["pos"][1] * self.tile_size - offset[1],
+                        ),
+                    )
