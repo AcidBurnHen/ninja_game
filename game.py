@@ -45,6 +45,7 @@ class Game:
                 load_images("particles/particle"), img_dur=6, loop=False
             ),
             "gun": load_image("gun.png"),
+            "projectile": load_image("projectile.png"),
         }
 
         self.clouds = Clouds(self.assets["clouds"], count=16)
@@ -54,7 +55,11 @@ class Game:
         self.player = Player(game=self, pos=(50, 50), size=(8, 15))
 
         self.tilemap = Tilemap(self, tile_size=16)
-        self.tilemap.load("map.json")
+
+        self.load_level(0)
+
+    def load_level(self, map_id):
+        self.tilemap.load("data/maps/" + str(map_id) + ".json")
 
         self.leaf_spawners = []
         for tree in self.tilemap.extract([("large_decor", 2)], keep=True):
@@ -69,6 +74,8 @@ class Game:
             else:
                 self.enemies.append(Enemy(self, spawner["pos"], (8, 15)))
 
+        # [[x, y], direction, timer]
+        self.projectiles = []
         self.particles = []
 
         self.scroll = [0, 0]
@@ -119,7 +126,7 @@ class Game:
             # Render tiles
             self.tilemap.render(self.display, offset=render_scroll)
 
-            # Render players
+            # Render enemies
             for enemy in self.enemies.copy():
                 enemy.update(self.tilemap, (0, 0))
                 enemy.render(self.display, offset=render_scroll)
@@ -127,6 +134,25 @@ class Game:
             # Render player
             self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0))
             self.player.render(self.display, offset=render_scroll)
+
+            # Projectiles
+            for projectile in self.projectiles.copy():
+                projectile[0][0] += projectile[1]
+                projectile[2] += 1
+                img = self.assets["projectile"]
+                self.display.blit(
+                    img,
+                    (
+                        projectile[0][0] - img.get_width() / 2 - render_scroll[0],
+                        projectile[0][1] - img.get_height() / 2 - render_scroll[1],
+                    ),
+                )
+                if self.tilemap.solid_check(projectile[0]) or projectile[2] > 360:
+                    self.projectiles.remove(projectile)
+                elif abs(self.player.dashing) < 50 and self.player.rect().collidepoint(
+                    projectile[0]
+                ):
+                    self.projectiles.remove(projectile)
 
             # Manage particles and remove killed ones
             for particle in self.particles.copy():
