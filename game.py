@@ -7,6 +7,7 @@ from modules.tilemap import Tilemap
 from modules.clouds import Clouds
 from modules.animations import Animation
 from modules.particles import Particle
+from modules.sparks import Spark
 from utils import load_image, load_images
 
 
@@ -38,12 +39,8 @@ class Game:
             "player/jump": Animation(load_images("entities/player/jump")),
             "player/slide": Animation(load_images("entities/player/slide")),
             "player/wall_slide": Animation(load_images("entities/player/wall_slide")),
-            "particle/leaf": Animation(
-                load_images("particles/leaf"), img_dur=20, loop=False
-            ),
-            "particle/particle": Animation(
-                load_images("particles/particle"), img_dur=6, loop=False
-            ),
+            "particle/leaf": Animation(load_images("particles/leaf"), img_dur=20, loop=False),
+            "particle/particle": Animation(load_images("particles/particle"), img_dur=6, loop=False),
             "gun": load_image("gun.png"),
             "projectile": load_image("projectile.png"),
         }
@@ -59,13 +56,11 @@ class Game:
         self.load_level(0)
 
     def load_level(self, map_id):
-        self.tilemap.load("data/maps/" + str(map_id) + ".json")
-
+        # self.tilemap.load("data/maps/" + str(map_id) + ".json")
+        self.tilemap.load("map.json")
         self.leaf_spawners = []
         for tree in self.tilemap.extract([("large_decor", 2)], keep=True):
-            self.leaf_spawners.append(
-                pygame.Rect(4 + tree["pos"][0], 4 + tree["pos"][1], 23, 13)
-            )
+            self.leaf_spawners.append(pygame.Rect(4 + tree["pos"][0], 4 + tree["pos"][1], 23, 13))
 
         self.enemies = []
         for spawner in self.tilemap.extract([("spawners", 0), ("spawners", 1)]):
@@ -77,6 +72,7 @@ class Game:
         # [[x, y], direction, timer]
         self.projectiles = []
         self.particles = []
+        self.sparks = []
 
         self.scroll = [0, 0]
 
@@ -85,17 +81,9 @@ class Game:
             self.display.blit(self.assets["background"], (0, 0))
 
             # Calculate camera position
-            self.scroll[0] += (
-                self.player.rect().centerx
-                - self.display.get_width() / 2
-                - self.scroll[0]
-            ) / 30
+            self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 30
 
-            self.scroll[1] += (
-                self.player.rect().centery
-                - self.display.get_height() / 2
-                - self.scroll[1]
-            ) / 30
+            self.scroll[1] += (self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1]) / 30
 
             render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
 
@@ -148,11 +136,38 @@ class Game:
                     ),
                 )
                 if self.tilemap.solid_check(projectile[0]) or projectile[2] > 360:
+                    for i in range(4):
+                        self.sparks.append(
+                            Spark(
+                                self.projectiles[0][0],
+                                random.random() - 0.5 + (math.pi if projectile[1] > 0 else 0),
+                                2 + random.random(),
+                            )
+                        )
+
                     self.projectiles.remove(projectile)
-                elif abs(self.player.dashing) < 50 and self.player.rect().collidepoint(
-                    projectile[0]
-                ):
+                elif abs(self.player.dashing) < 50 and self.player.rect().collidepoint(projectile[0]):
                     self.projectiles.remove(projectile)
+                    for i in range(30):
+                        angle = random.random() * math.pi * 2
+                        speed = random.random() * 5
+                        self.sparks.append(Spark(self.player.rect().center, angle, 2 + random.random()))
+                        self.particles.append(
+                            Particle(
+                                self,
+                                "particle",
+                                self.player.rect().center,
+                                velocity=[math.cos(angle + math.pi) * speed - 0.5, math.sin(angle + math.pi) * speed * 0.5],
+                                frame=random.randint(0, 7),
+                            )
+                        )
+
+            # Sparks
+            for spark in self.sparks.copy():
+                kill = spark.update()
+                spark.render(self.display, offset=render_scroll)
+                if kill:
+                    self.sparks.remove(spark)
 
             # Manage particles and remove killed ones
             for particle in self.particles.copy():
@@ -184,9 +199,7 @@ class Game:
                     elif event.key == pygame.K_RIGHT:
                         self.movement[1] = False
 
-            self.screen.blit(
-                pygame.transform.scale(self.display, self.screen.get_size()), (0, 0)
-            )
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
             pygame.display.update()
             # Force the loop to run at 60 FPS
             self.clock.tick(60)

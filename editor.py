@@ -57,9 +57,7 @@ class Editor:
 
             self.tilemap.render(self.display, offset=render_scroll)
 
-            current_tile_image = self.assets[self.tile_list[self.tile_group]][
-                self.tile_variant
-            ].copy()
+            current_tile_image = self.assets[self.tile_list[self.tile_group]][self.tile_variant].copy()
             current_tile_image.set_alpha(100)
 
             mouse_pos = pygame.mouse.get_pos()
@@ -129,23 +127,15 @@ class Editor:
                         self.right_clicking = True
                     elif self.shift:
                         if event.button == 4:
-                            self.tile_variant = (self.tile_variant - 1) % len(
-                                self.assets[self.tile_list[self.tile_group]]
-                            )
+                            self.tile_variant = (self.tile_variant - 1) % len(self.assets[self.tile_list[self.tile_group]])
                         elif event.button == 5:
-                            self.tile_variant = (self.tile_variant + 1) % len(
-                                self.assets[self.tile_list[self.tile_group]]
-                            )
+                            self.tile_variant = (self.tile_variant + 1) % len(self.assets[self.tile_list[self.tile_group]])
                     else:
                         if event.button == 4:
-                            self.tile_group = (self.tile_group - 1) % len(
-                                self.tile_list
-                            )
+                            self.tile_group = (self.tile_group - 1) % len(self.tile_list)
                             self.tile_variant = 0
                         elif event.button == 5:
-                            self.tile_group = (self.tile_group + 1) % len(
-                                self.tile_list
-                            )
+                            self.tile_group = (self.tile_group + 1) % len(self.tile_list)
                             self.tile_variant = 0
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
@@ -181,9 +171,7 @@ class Editor:
                     elif event.key in [pygame.K_LSHIFT, pygame.K_RSHIFT]:
                         self.shift = False
 
-            self.screen.blit(
-                pygame.transform.scale(self.display, self.screen.get_size()), (0, 0)
-            )
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
             pygame.display.update()
             # Force the loop to run at 60 FPS
             self.clock.tick(60)

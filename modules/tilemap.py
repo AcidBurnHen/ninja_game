@@ -63,9 +63,7 @@ class Tilemap:
 
         tile_loc = (int(pos[0] // self.tile_size), int(pos[1] // self.tile_size))
         for offset in NEIGHBOR_OFFSETS:
-            check_loc = (
-                str(tile_loc[0] + offset[0]) + ";" + str(tile_loc[1] + offset[1])
-            )
+            check_loc = str(tile_loc[0] + offset[0]) + ";" + str(tile_loc[1] + offset[1])
 
             if check_loc in self.tilemap:
                 tiles.append(self.tilemap[check_loc])
@@ -88,11 +86,7 @@ class Tilemap:
         return rects
 
     def solid_check(self, pos):
-        tile_loc = (
-            str(int(pos[0] // self.tile_size))
-            + ";"
-            + str(int(pos[1] // self.tile_size))
-        )
+        tile_loc = str(int(pos[0] // self.tile_size)) + ";" + str(int(pos[1] // self.tile_size))
 
         if tile_loc in self.tilemap and self.tilemap[tile_loc]["type"] in PHYSICS_TILES:
             return True
@@ -105,15 +99,8 @@ class Tilemap:
 
             neighbors = set()
             for shift in [(1, 0), (-1, 0), (0, -1), (0, 1)]:
-                check_loc = (
-                    str(tile["pos"][0] + shift[0])
-                    + ";"
-                    + str(tile["pos"][1] + shift[1])
-                )
-                if (
-                    check_loc in self.tilemap
-                    and self.tilemap[check_loc]["type"] == tile["type"]
-                ):
+                check_loc = str(tile["pos"][0] + shift[0]) + ";" + str(tile["pos"][1] + shift[1])
+                if check_loc in self.tilemap and self.tilemap[check_loc]["type"] == tile["type"]:
                     neighbors.add(shift)
 
             neighbors = tuple(sorted(neighbors))
