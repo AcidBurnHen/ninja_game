@@ -1,3 +1,6 @@
 shh.txt
 *__pycache__
 map.json
+game.spec
+/build/
+/dist/
